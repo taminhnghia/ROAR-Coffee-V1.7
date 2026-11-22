@@ -4291,7 +4291,9 @@ async function startServer() {
       server: {
         middlewareMode: true,
         allowedHosts: true,
-        hmr: process.env.DISABLE_HMR !== 'true',
+        // This Vite instance runs behind Express middleware without a WebSocket upgrade handler.
+        // Disable HMR here to prevent the preview client from retrying a socket that cannot open.
+        hmr: false,
       },
       appType: 'spa',
     });
