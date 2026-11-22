@@ -2,6 +2,7 @@ import 'dotenv/config';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createServer as createHttpServer } from 'node:http';
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import {
@@ -4283,6 +4284,7 @@ app.post('/api/admin/exchange-rate/vietcombank/sync', requirePermission('product
 
 // ---------- VITE / STATIC SERVING ----------
 async function startServer() {
+  const httpServer = createHttpServer(app);
   const distDir = path.resolve(process.cwd(), 'dist');
   const useProdStatic = IS_PROD && fs.existsSync(distDir);
 
@@ -4291,7 +4293,8 @@ async function startServer() {
       server: {
         middlewareMode: true,
         allowedHosts: true,
-        hmr: process.env.DISABLE_HMR !== 'true',
+        // Attach Vite HMR to the same HTTP server that serves Express middleware.
+        hmr: { server: httpServer },
       },
       appType: 'spa',
     });
@@ -4304,7 +4307,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`ROAR COFFEE platform listening on http://localhost:${PORT}`);
   });
 }
